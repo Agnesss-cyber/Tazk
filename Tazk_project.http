@@ -1,0 +1,6 @@
+@Tazk_project_HostAddress = http://localhost:5016
+
+GET {{Tazk_project_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
