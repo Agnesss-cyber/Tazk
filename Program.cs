@@ -6,6 +6,7 @@ using System.Text.Json.Serialization;
 using Tazk.Data;
 using Microsoft.OpenApi.Models;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Controllers + JSON 
