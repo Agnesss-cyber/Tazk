@@ -16,9 +16,9 @@ namespace Tazk.Models
         public required User User { get; set; }
 
         [Required]
-        public int TaskId { get; set; }
+        public  int? TaskId { get; set; }
         [ForeignKey("TaskId")]
-        public required ProjectTask Task { get; set; }
+        public ProjectTask? Task { get; set; }
 
         [Required]
         public required string  Message { get; set; }
