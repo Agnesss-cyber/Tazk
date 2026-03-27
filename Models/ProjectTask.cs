@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -14,26 +14,26 @@ namespace Tazk.Models
         [Required]
         public int WorkspaceId { get; set; }
         [ForeignKey("WorkspaceId")]
-        public Workspace Workspace { get; set; }
+        public Workspace Workspace { get; set; } = null!;
 
         [Required]
         public int ColumnId { get; set; }
         [ForeignKey("ColumnId")]
-        public BoardColumn Column { get; set; }
+        public BoardColumn Column { get; set; } = null!;
 
         public int? AssignedToId { get; set; }
         [ForeignKey("AssignedToId")]
-        public User AssignedTo { get; set; }
+        public User? AssignedTo { get; set; }
 
         [Required]
         public int CreatedById { get; set; }
         [ForeignKey("CreatedById")]
-        public User CreatedBy { get; set; }
+        public User CreatedBy { get; set; } = null!;
 
         [Required]
-        public string Title { get; set; }
+        public string Title { get; set; } = null!;
 
-        public string Description { get; set; }
+        public string Description { get; set; } = string.Empty;
 
         [Required]
         public EffortLevel Effort { get; set; }
@@ -48,7 +48,7 @@ namespace Tazk.Models
         public DateTime CreatedAt { get; set; }
 
         // Navigation Properties
-        public ICollection<Notification> Notifications { get; set; }
-        public ICollection<PerformanceScore> PerformanceScores { get; set; }
+        public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
+        public ICollection<PerformanceScore> PerformanceScores { get; set; } = new List<PerformanceScore>();
     }
 }

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Tazk.Data;
 using Tazk.DTOs;
@@ -23,7 +23,7 @@ namespace Tazk.Controllers
         {
             var boards = await _db.Boards
                 .Where(b => b.WorkspaceId == workspaceId)
-                .Include(b => b.Columns.OrderBy(c => c.Position))
+                .Include(b => b.Columns!.OrderBy(c => c.Position))
                 .ToListAsync();
 
             return Ok(boards);
@@ -35,7 +35,7 @@ namespace Tazk.Controllers
         {
             var board = await _db.Boards
                 .Include(b => b.Workspace)
-                .Include(b => b.Columns.OrderBy(c => c.Position))
+                .Include(b => b.Columns!.OrderBy(c => c.Position))
                     .ThenInclude(c => c.Tasks)
                 .FirstOrDefaultAsync(b => b.Id == id);
 

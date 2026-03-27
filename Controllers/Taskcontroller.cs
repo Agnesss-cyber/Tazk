@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Tazk.Data;
 using Tazk.DTOs;
@@ -109,7 +109,7 @@ namespace Tazk.Controllers
                 AssignedToId = dto.AssignedToId,
                 CreatedById = dto.CreatedById,
                 Title = dto.Title,
-                Description = dto.Description,
+                Description = dto.Description ?? string.Empty,
                 Effort = dto.Effort,
                 Urgency = dto.Urgency,
                 DueDate = dto.DueDate,

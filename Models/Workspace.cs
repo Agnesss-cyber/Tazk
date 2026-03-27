@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -17,7 +17,7 @@ namespace Tazk.Models
         [Required]
         public int OwnerId { get; set; }
         [ForeignKey("OwnerId")]
-        public User Owner { get; set; }
+        public User Owner { get; set; } = null!;
 
         [Required]
         public WorkspaceType Type { get; set; }
@@ -25,10 +25,10 @@ namespace Tazk.Models
         public DateTime CreatedAt { get; set; }
 
         // Navigation Properties
-        public ICollection<WorkspaceMember> Members { get; set; }
-        public ICollection<WorkspaceInvitation> Invitations { get; set; }
-        public ICollection<Board> Boards { get; set; }
-        public ICollection<ProjectTask> Tasks { get; set; }
-        public ICollection<WorkspaceDocument> Documents { get; set; }
+        public ICollection<WorkspaceMember> Members { get; set; } = new List<WorkspaceMember>();
+        public ICollection<WorkspaceInvitation> Invitations { get; set; } = new List<WorkspaceInvitation>();
+        public ICollection<Board> Boards { get; set; } = new List<Board>();
+        public ICollection<ProjectTask> Tasks { get; set; } = new List<ProjectTask>();
+        public ICollection<WorkspaceDocument> Documents { get; set; } = new List<WorkspaceDocument>();
     }
 }

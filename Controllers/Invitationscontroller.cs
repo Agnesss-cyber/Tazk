@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Tazk.Data;
 using Tazk.DTOs;
@@ -106,7 +106,7 @@ namespace Tazk.Controllers
                         UserId = user.Id,
                         Role = MemberRole.Member,
                         JoinedAt = DateTime.UtcNow,
-                        Workspace = invitation.Workspace,
+                        Workspace = invitation.Workspace!,
                         User = user
                     });
                 }
