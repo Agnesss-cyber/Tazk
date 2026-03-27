@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -77,12 +77,12 @@ namespace Tazk.Controllers
             });
         }
 
-        //JWT Helper
+        // JWT Helper
 
         private string GenerateJwtToken(User user)
         {
-            var jwtSecret = Environment.GetEnvironmentVariable("TAZK_JWT_SECRET")
-                ?? throw new InvalidOperationException("JWT secret environment variable 'TAZK_JWT_SECRET' is not set.");
+            var jwtSecret = _config["Jwt:Secret"]
+                ?? throw new InvalidOperationException("JWT secret is not configured in appsettings.json under 'Jwt:Secret'.");
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -96,8 +96,8 @@ namespace Tazk.Controllers
             };
 
             var token = new JwtSecurityToken(
-                issuer: "Tazk",
-                audience: "TazkUsers",
+                issuer: _config["Jwt:Issuer"] ?? "Tazk",
+                audience: _config["Jwt:Audience"] ?? "TazkUsers",
                 claims: claims,
                 expires: DateTime.UtcNow.AddDays(7),
                 signingCredentials: credentials
