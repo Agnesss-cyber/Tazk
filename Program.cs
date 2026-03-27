@@ -57,10 +57,13 @@ builder.Services.AddCors(options =>
 });
 
 //JWT Authentication 
-var jwtSecret = Environment.GetEnvironmentVariable("TAZK_JWT_SECRET") // NEW: Reads secret from environment variable
-    ?? throw new InvalidOperationException("JWT secret environment variable 'TAZK_JWT_SECRET' is not set.");
+var jwtSecret = builder.Configuration["Jwt:Secret"]
+    ?? throw new InvalidOperationException("JWT secret is not configured in appsettings.json under Jwt:Secret.");
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme) // NEW: Sets up JWT authentication
+var jwtIssuer = builder.Configuration["Jwt:Issuer"]!;
+var jwtAudience = builder.Configuration["Jwt:Audience"]!;
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
@@ -69,11 +72,25 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme) // NE
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = "Tazk",
-            ValidAudience = "TazkUsers",
+            ValidIssuer = jwtIssuer,
+            ValidAudience = jwtAudience,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret))
         };
     });
+//builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme) // NEW: Sets up JWT authentication
+//    .AddJwtBearer(options =>
+//    {
+//        options.TokenValidationParameters = new TokenValidationParameters
+//        {
+//            ValidateIssuer = true,
+//            ValidateAudience = true,
+//            ValidateLifetime = true,
+//            ValidateIssuerSigningKey = true,
+//            ValidIssuer = "Tazk",
+//            ValidAudience = "TazkUsers",
+//            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret))
+//        };
+//    });
 
 builder.Services.AddAuthorization();
 
