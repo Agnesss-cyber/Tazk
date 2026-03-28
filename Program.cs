@@ -1,10 +1,13 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
 using System.Text;
 using System.Text.Json.Serialization;
 using Tazk.Data;
-using Microsoft.OpenApi;
+using Tazk.GraphQL.Mutations;
+using Tazk.GraphQL.Queries;
+
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -82,6 +85,16 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
+//var app = builder.Build();
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<Query>()
+    .AddMutationType<Mutation>()
+    .AddProjections()
+    .AddFiltering()
+    .AddSorting();
+    //.RegisterDbContext<TazkDbContext>();
+
 var app = builder.Build();
 
 // Middleware pipeline 
@@ -96,5 +109,6 @@ app.UseCors("DevPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapGraphQL();
 
 app.Run();
