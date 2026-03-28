@@ -99,7 +99,43 @@ namespace Tazk.Controllers
             var workspace = await _db.Workspaces.FindAsync(id);
             if (workspace == null) return NotFound();
 
+
+            // 1. Performance scores (reference tasks)
+            // taskIds = _db.Tasks.Where(t => t.WorkspaceId == id).Select(t => t.Id);
+            var taskIds = await _db.Tasks.Where(t => t.WorkspaceId == id).Select(t => (int?)t.Id).ToListAsync();
+            var scores = _db.PerformanceScores.Where(ps => taskIds.Contains(ps.TaskId));
+            _db.PerformanceScores.RemoveRange(scores);
+
+            // 2. Notifications (reference tasks)
+            var notifications = _db.Notifications.Where(n => taskIds.Contains(n.TaskId));
+            _db.Notifications.RemoveRange(notifications);
+
+            // 3. Tasks
+            var tasks = _db.Tasks.Where(t => t.WorkspaceId == id);
+            _db.Tasks.RemoveRange(tasks);
+
+            // 4. Columns (reference boards)
+            var boardIds = _db.Boards.Where(b => b.WorkspaceId == id).Select(b => b.Id);
+            var columns = _db.Columns.Where(c => boardIds.Contains(c.BoardId));
+            _db.Columns.RemoveRange(columns);
+
+            // 5. Boards
+            var boards = _db.Boards.Where(b => b.WorkspaceId == id);
+            _db.Boards.RemoveRange(boards);
+
+            // 6. Members, Invitations, Documents
+            var members = _db.WorkspaceMembers.Where(wm => wm.WorkspaceId == id);
+            _db.WorkspaceMembers.RemoveRange(members);
+
+            var invitations = _db.WorkspaceInvitations.Where(i => i.WorkspaceId == id);
+            _db.WorkspaceInvitations.RemoveRange(invitations);
+
+            var documents = _db.WorkspaceDocuments.Where(d => d.WorkspaceId == id);
+            _db.WorkspaceDocuments.RemoveRange(documents);
+
+            // 7. Finally delete the workspace
             _db.Workspaces.Remove(workspace);
+
             await _db.SaveChangesAsync();
             return NoContent();
         }

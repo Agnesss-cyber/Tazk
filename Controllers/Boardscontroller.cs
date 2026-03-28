@@ -97,12 +97,32 @@ namespace Tazk.Controllers
             var board = await _db.Boards.FindAsync(id);
             if (board == null) return NotFound();
 
+            // 1. Get task IDs in this board's columns
+            var columnIds = await _db.Columns.Where(c => c.BoardId == id).Select(c => c.Id).ToListAsync();
+            var taskIds = await _db.Tasks.Where(t => columnIds.Contains(t.ColumnId)).Select(t => (int?)t.Id).ToListAsync();
+
+            // 2. Delete notifications and performance scores
+            var notifications = _db.Notifications.Where(n => taskIds.Contains(n.TaskId));
+            _db.Notifications.RemoveRange(notifications);
+
+            var scores = _db.PerformanceScores.Where(ps => taskIds.Contains(ps.TaskId));
+            _db.PerformanceScores.RemoveRange(scores);
+
+            // 3. Delete tasks
+            var tasks = _db.Tasks.Where(t => columnIds.Contains(t.ColumnId));
+            _db.Tasks.RemoveRange(tasks);
+
+            // 4. Delete columns
+            var columns = _db.Columns.Where(c => c.BoardId == id);
+            _db.Columns.RemoveRange(columns);
+
+            // 5. Delete board
             _db.Boards.Remove(board);
             await _db.SaveChangesAsync();
             return NoContent();
         }
 
-        // ── Columns ───────────────────────────────────────────────────────────
+        // Columns 
 
         // POST api/boards/{boardId}/columns
         [HttpPost("{boardId}/columns")]
