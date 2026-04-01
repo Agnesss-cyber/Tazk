@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Tazk.Data;
 using Tazk.Models;
+using BCrypt.Net;
 
 namespace Tazk.GraphQL.Mutations
 {
@@ -105,6 +106,33 @@ namespace Tazk.GraphQL.Mutations
                 ?? throw new GraphQLException("Board not found.");
 
             db.Boards.Remove(board);
+            await db.SaveChangesAsync();
+            return true;
+        }
+        public async Task<bool> DeleteColumn(int id, TazkDbContext db)
+        {
+            var column = await db.Columns.FindAsync(id)
+                ?? throw new GraphQLException("Column not found.");
+
+            // 1. Get task IDs in this column
+            var taskIds = await db.Tasks
+                .Where(t => t.ColumnId == id)
+                .Select(t => (int?)t.Id)
+                .ToListAsync();
+
+            // 2. Delete notifications and performance scores
+            var notifications = db.Notifications.Where(n => taskIds.Contains(n.TaskId));
+            db.Notifications.RemoveRange(notifications);
+
+            var scores = db.PerformanceScores.Where(ps => taskIds.Contains(ps.TaskId));
+            db.PerformanceScores.RemoveRange(scores);
+
+            // 3. Delete tasks
+            var tasks = db.Tasks.Where(t => t.ColumnId == id);
+            db.Tasks.RemoveRange(tasks);
+
+            // 4. Delete column
+            db.Columns.Remove(column);
             await db.SaveChangesAsync();
             return true;
         }
@@ -312,33 +340,71 @@ namespace Tazk.GraphQL.Mutations
             await db.SaveChangesAsync();
             return notifications.Count;
         }
+
+        // ── User Mutations ────────────────────────────────────────────────────────
+
+        public async Task<User> RegisterUser(
+            RegisterUserInput input,
+            TazkDbContext db)
+        {
+            var emailExists = await db.Users.AnyAsync(u => u.Email == input.Email);
+            if (emailExists)
+                throw new GraphQLException("An account with this email already exists.");
+
+            var user = new User
+            {
+                FullName = input.FullName,
+                Email = input.Email,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(input.Password),
+                CreatedAt = DateTime.UtcNow
+            };
+
+            db.Users.Add(user);
+            await db.SaveChangesAsync();
+            return user;
+        }
+
+        public async Task<bool> DeleteUser(int id, TazkDbContext db)
+        {
+            var user = await db.Users.FindAsync(id)
+                ?? throw new GraphQLException("User not found.");
+
+            // Clear assigned tasks before deleting
+            var assignedTasks = await db.Tasks.Where(t => t.AssignedToId == id).ToListAsync();
+            assignedTasks.ForEach(t => t.AssignedToId = null);
+
+            db.Users.Remove(user);
+            await db.SaveChangesAsync();
+            return true;
+        }
+
+        //  Input Types 
+
+        public record CreateWorkspaceInput(string Name, int OwnerId, WorkspaceType Type);
+        public record UpdateWorkspaceInput(int Id, string? Name, WorkspaceType? Type);
+        public record CreateBoardInput(string Name, int WorkspaceId, bool IsDefault);
+        public record CreateTaskInput(
+            int WorkspaceId,
+            int ColumnId,
+            int? AssignedToId,
+            int CreatedById,
+            string Title,
+            string? Description,
+            EffortLevel Effort,
+            UrgencyLevel Urgency,
+            DateTime? DueDate);
+        public record UpdateTaskInput(
+            int Id,
+            string? Title,
+            string? Description,
+            int? ColumnId,
+            int? AssignedToId,
+            EffortLevel? Effort,
+            UrgencyLevel? Urgency,
+            DateTime? DueDate,
+            DateTime? CompletedAt);
+        public record SendInvitationInput(int WorkspaceId, string Email);
+        public record RespondToInvitationInput(int Id, InvitationStatus Status);
+        public record RegisterUserInput(string FullName, string Email, string Password);
     }
-
-    //  Input Types 
-
-    public record CreateWorkspaceInput(string Name, int OwnerId, WorkspaceType Type);
-    public record UpdateWorkspaceInput(int Id, string? Name, WorkspaceType? Type);
-    public record CreateBoardInput(string Name, int WorkspaceId, bool IsDefault);
-    public record CreateTaskInput(
-        int WorkspaceId,
-        int ColumnId,
-        int? AssignedToId,
-        int CreatedById,
-        string Title,
-        string? Description,
-        EffortLevel Effort,
-        UrgencyLevel Urgency,
-        DateTime? DueDate);
-    public record UpdateTaskInput(
-        int Id,
-        string? Title,
-        string? Description,
-        int? ColumnId,
-        int? AssignedToId,
-        EffortLevel? Effort,
-        UrgencyLevel? Urgency,
-        DateTime? DueDate,
-        DateTime? CompletedAt);
-    public record SendInvitationInput(int WorkspaceId, string Email);
-    public record RespondToInvitationInput(int Id, InvitationStatus Status);
 }
