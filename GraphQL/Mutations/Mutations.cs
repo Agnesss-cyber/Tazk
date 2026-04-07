@@ -341,7 +341,7 @@ namespace Tazk.GraphQL.Mutations
             return notifications.Count;
         }
 
-        // ── User Mutations ────────────────────────────────────────────────────────
+        // User Mutations 
 
         public async Task<User> RegisterUser(
             RegisterUserInput input,
