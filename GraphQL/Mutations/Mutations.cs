@@ -1,8 +1,13 @@
-﻿using HotChocolate;
+﻿using BCrypt.Net;
+using HotChocolate;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 using Tazk.Data;
 using Tazk.Models;
-using BCrypt.Net;
+using Microsoft.Extensions.Configuration;
 
 namespace Tazk.GraphQL.Mutations
 {
@@ -135,6 +140,18 @@ namespace Tazk.GraphQL.Mutations
             db.Columns.Remove(column);
             await db.SaveChangesAsync();
             return true;
+        }
+        public async Task<Board> UpdateBoard(
+    UpdateBoardInput input,
+    TazkDbContext db)
+        {
+            var board = await db.Boards.FindAsync(input.Id)
+                ?? throw new GraphQLException("Board not found.");
+
+            if (input.Name != null) board.Name = input.Name;
+
+            await db.SaveChangesAsync();
+            return board;
         }
 
         // Task Mutations
@@ -377,12 +394,55 @@ namespace Tazk.GraphQL.Mutations
             await db.SaveChangesAsync();
             return true;
         }
+        public async Task<AuthPayload> LoginUser(
+    LoginUserInput input,
+    TazkDbContext db,
+    IConfiguration config)
+        {
+            var user = await db.Users.FirstOrDefaultAsync(u => u.Email == input.Email)
+                ?? throw new GraphQLException("Invalid email or password.");
+
+            var validPassword = BCrypt.Net.BCrypt.Verify(input.Password, user.PasswordHash);
+            if (!validPassword)
+                throw new GraphQLException("Invalid email or password.");
+
+            var token = GenerateJwtToken(user, config);
+
+            return new AuthPayload(token, user);
+        }
+
+        private string GenerateJwtToken(User user, IConfiguration config)
+        {
+            var key = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(config["Jwt:Secret"]!));
+
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var claims = new[]
+            {
+        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+        new Claim(ClaimTypes.Email, user.Email),
+        new Claim(ClaimTypes.Name, user.FullName),
+    };
+
+            var token = new JwtSecurityToken(
+                issuer: config["Jwt:Issuer"],
+                audience: config["Jwt:Audience"],
+                claims: claims,
+                expires: DateTime.UtcNow.AddDays(7),
+                signingCredentials: creds
+            );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
 
         //  Input Types 
 
         public record CreateWorkspaceInput(string Name, int OwnerId, WorkspaceType Type);
         public record UpdateWorkspaceInput(int Id, string? Name, WorkspaceType? Type);
         public record CreateBoardInput(string Name, int WorkspaceId, bool IsDefault);
+        public record LoginUserInput(string Email, string Password);
+        public record AuthPayload(string Token, User User);
         public record CreateTaskInput(
             int WorkspaceId,
             int ColumnId,
@@ -404,6 +464,7 @@ namespace Tazk.GraphQL.Mutations
             DateTime? DueDate,
             DateTime? CompletedAt);
         public record SendInvitationInput(int WorkspaceId, string Email);
+        public record UpdateBoardInput(int Id, string? Name);
         public record RespondToInvitationInput(int Id, InvitationStatus Status);
         public record RegisterUserInput(string FullName, string Email, string Password);
     }
