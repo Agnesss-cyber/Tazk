@@ -41,7 +41,7 @@ export default function WorkspaceList() {
         type: form.type === 'Public' ? 'PUBLIC' : 'PRIVATE',
         ownerId: user.id,
       })
-
+//tester
       // 2. Create 2 default boards — backend auto-creates 3 columns for each
       const [board1] = await Promise.all([
         createBoard({ name: 'Board 1', workspaceId: workspace.id, isDefault: true }),
