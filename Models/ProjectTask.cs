@@ -36,10 +36,10 @@ namespace Tazk.Models
         public string Description { get; set; } = string.Empty;
 
         [Required]
-        public EffortLevel Effort { get; set; }
+        public EffortLevel? Effort { get; set; }
 
         [Required]
-        public UrgencyLevel Urgency { get; set; }
+        public UrgencyLevel? Urgency { get; set; }
 
         public DateTime? DueDate { get; set; }
 

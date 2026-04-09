@@ -154,6 +154,26 @@ namespace Tazk.GraphQL.Mutations
             return board;
         }
 
+        public async Task<BoardColumn> CreateColumn(
+    CreateColumnInput input,
+    TazkDbContext db)
+        {
+            var board = await db.Boards.FindAsync(input.BoardId)
+                ?? throw new GraphQLException("Board not found.");
+
+            var column = new BoardColumn
+            {
+                BoardId = input.BoardId,
+                Name = input.Name,
+                Position = input.Position,
+                Board = board
+            };
+
+            db.Columns.Add(column);
+            await db.SaveChangesAsync();
+            return column;
+        }
+
         // Task Mutations
 
         public async Task<ProjectTask> CreateTask(
@@ -450,8 +470,8 @@ namespace Tazk.GraphQL.Mutations
             int CreatedById,
             string Title,
             string? Description,
-            EffortLevel Effort,
-            UrgencyLevel Urgency,
+            EffortLevel? Effort,
+            UrgencyLevel? Urgency,
             DateTime? DueDate);
         public record UpdateTaskInput(
             int Id,
@@ -466,6 +486,7 @@ namespace Tazk.GraphQL.Mutations
         public record SendInvitationInput(int WorkspaceId, string Email);
         public record UpdateBoardInput(int Id, string? Name);
         public record RespondToInvitationInput(int Id, InvitationStatus Status);
+        public record CreateColumnInput(int BoardId, string Name, int Position);
         public record RegisterUserInput(string FullName, string Email, string Password);
     }
 }

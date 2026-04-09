@@ -92,8 +92,13 @@ builder.Services
     .AddMutationType<Mutation>()
     .AddProjections()
     .AddFiltering()
-    .AddSorting();
-    //.RegisterDbContext<TazkDbContext>();
+    .AddSorting()
+.ModifyCostOptions(opt =>
+{
+
+    opt.EnforceCostLimits = false;
+});
+//.RegisterDbContext<TazkDbContext>();
 
 var app = builder.Build();
 
