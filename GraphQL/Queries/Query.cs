@@ -93,6 +93,15 @@ namespace Tazk.GraphQL.Queries
         public IQueryable<User> GetUserById(TazkDbContext db, int id)
             => db.Users.Where(u => u.Id == id);
 
+        //Invitations
+        [UseProjection]
+        [UseFiltering] // Allows filtering by status 
+        public IQueryable<WorkspaceInvitation> GetWorkspaceInvitationsByEmail(
+            TazkDbContext db, string email)
+        {
+            // Query the WorkspaceInvitations table where the email matches
+            return db.WorkspaceInvitations.Where(wi => wi.Email == email);
+        }
         // Notifications 
 
         [UseProjection]
