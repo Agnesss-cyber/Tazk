@@ -8,6 +8,7 @@ import Login from '../Pages/login'
 import Register from '../Pages/register'
 import WorkspaceList from '../Pages/WorkspaceList'
 import Board from '../Pages/board'
+import Invitations from '../Pages/Invitations'
 // import Performance from '../Pages/Performance'
 // import Workload from '../Pages/Workload'
 
@@ -24,6 +25,7 @@ export default function AppRoutes() {
       <Route path="/dashboard"
         element={<ProtectedRoute><WorkspaceList /></ProtectedRoute>}
       /> 
+       <Route path="/Invitations" element={<ProtectedRoute><Invitations /></ProtectedRoute>} />
 
        <Route path="/workspace/:workspaceId/board/:boardId"
         element={<ProtectedRoute><Board /></ProtectedRoute>}

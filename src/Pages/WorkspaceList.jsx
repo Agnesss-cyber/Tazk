@@ -1,7 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../store/authStore'
-import { getWorkspaces, createWorkspace, createBoard } from '../api/auth'
+import { getWorkspaces, createWorkspace, createBoard, getPendingInvitations } from '../api/auth'
+
+// --- Extracted Material UI Imports ---
+import { IconButton, Badge, Tooltip } from '@mui/material'
+import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNoneOutlined'
 
 export default function WorkspaceList() {
   const navigate = useNavigate()
@@ -15,7 +19,27 @@ export default function WorkspaceList() {
   const [creating, setCreating] = useState(false)
   const [formError, setFormError] = useState('')
 
-  useEffect(() => { fetchWorkspaces() }, [])
+  // --- Extracted Notification State ---
+  const [pendingCount, setPendingCount] = useState(0)
+
+  // Fetch workspaces
+  useEffect(() => { 
+    fetchWorkspaces() 
+  }, [])
+
+  // --- Extracted Notification Fetching Logic ---
+  useEffect(() => {
+    if (user?.email) fetchPendingCount()
+  }, [user])
+
+  async function fetchPendingCount() {
+    try {
+      const invitations = await getPendingInvitations(user.email)
+      setPendingCount(invitations.length)
+    } catch {
+      // silently fail
+    }
+  }
 
   async function fetchWorkspaces() {
     try {
@@ -41,7 +65,7 @@ export default function WorkspaceList() {
         type: form.type === 'Public' ? 'PUBLIC' : 'PRIVATE',
         ownerId: user.id,
       })
-//tester
+
       // 2. Create 2 default boards — backend auto-creates 3 columns for each
       const [board1] = await Promise.all([
         createBoard({ name: 'Board 1', workspaceId: workspace.id, isDefault: true }),
@@ -62,7 +86,7 @@ export default function WorkspaceList() {
   }
 
   function getUserRole(workspace) {
-    const member = workspace.workspaceMembers?.find(m => m.userId === user.id)
+    const member = workspace.members?.find(m => m.userId === user.id)
     return member?.role || 'member'
   }
 
@@ -75,7 +99,23 @@ export default function WorkspaceList() {
     <div className="dashboard-page">
       <nav className="landing-nav">
         <div className="logo">Tazk<span>.</span></div>
-        <div className="nav-links">
+        
+        <div className="nav-links" style={{ display: 'flex', alignItems: 'center' }}>
+          
+          {/* --- Extracted Notification Bell --- */}
+          <Tooltip title="Invitations">
+            <IconButton
+              size="small"
+              onClick={() => navigate('/invitations')}
+              sx={{ color: '#64748b', '&:hover': { color: '#f1f5f9' }, mr: 2 }}
+            >
+              <Badge badgeContent={pendingCount || null} color="error">
+                <NotificationsNoneOutlinedIcon fontSize="small" />
+              </Badge>
+            </IconButton>
+          </Tooltip>
+          {/* ----------------------------------- */}
+
           <span className="nav-username">👋 {user?.fullName}</span>
           <button className="btn-ghost" onClick={handleLogout}>Log out</button>
         </div>
