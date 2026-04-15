@@ -20,6 +20,10 @@ namespace Tazk.GraphQL.Queries
         public IQueryable<Workspace> GetWorkspaceById(TazkDbContext db, int id)
             => db.Workspaces.Where(w => w.Id == id);
 
+        [UseProjection]
+        [UseFiltering]
+        public IQueryable<WorkspaceInvitation> GetWorkspaceInvitations(TazkDbContext db)
+    => db.WorkspaceInvitations;
         // Boards 
 
         [UseProjection]
