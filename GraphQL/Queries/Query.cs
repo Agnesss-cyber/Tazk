@@ -137,6 +137,11 @@ namespace Tazk.GraphQL.Queries
         [UseProjection]
         public IQueryable<PerformanceScore> GetUserPerformance(TazkDbContext db, int userId)
             => db.PerformanceScores.Where(ps => ps.UserId == userId);
+        //members
+        [UseProjection]
+        [UseFiltering]
+        public IQueryable<WorkspaceMember> GetWorkspaceMembers(TazkDbContext db, int workspaceId)
+    => db.WorkspaceMembers.Where(wm => wm.WorkspaceId == workspaceId);
 
         // Smart Priority Helper 
 

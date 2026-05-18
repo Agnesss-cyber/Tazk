@@ -10,6 +10,8 @@ namespace Tazk.Models
         [Key]
         public int Id { get; set; }
 
+       
+
         [Required]
         public int WorkspaceId { get; set; }
         [ForeignKey("WorkspaceId")]
@@ -24,5 +26,6 @@ namespace Tazk.Models
         public MemberRole Role { get; set; }
 
         public DateTime JoinedAt { get; set; }
+        
     }
 }
