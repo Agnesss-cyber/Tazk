@@ -109,7 +109,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+if (app.Environment.IsDevelopment() || string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RENDER")))
+{
+   // app.UseHttpsRedirection();
+}
 app.UseCors("DevPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
